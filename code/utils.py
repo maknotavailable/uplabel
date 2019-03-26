@@ -54,17 +54,6 @@ def apply_cat_id(x, labels):
     except:
         return -1
 
-def get_stratified_split(data, n_splits=5, max_count=1):
-    splits = []
-    count = 1
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=123)
-    for index, _ in skf.split(data, data.pred_id):
-        splits.append(index)
-        if count == max_count:
-            break
-        count += 1   
-    return splits
-
 def append_iter():
     """Add iteration ID to DataFrame"""
     #TODO:

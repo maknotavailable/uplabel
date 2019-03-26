@@ -1,5 +1,5 @@
 """
-Estimate complexity
+Estimate task complexity
 
 """
 from imblearn.over_sampling import SMOTE
@@ -103,7 +103,9 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     print('[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
 
     # Calculate Score
-    complexity = np.mean(pred == y_test)
+    complexity = (np.mean(pred == y_test) * (len(_data) / len(data)))*100
+    print(f'[INFO] Complexity Score -> {complexity}')
+    #TODO: update complexity score (function of dataset size)
     return complexity, text_clf
 
 def apply_cat(data, cat_model, cat_map=None):
