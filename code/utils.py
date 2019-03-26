@@ -6,6 +6,7 @@ Util functions for data preparation and formatting.
 import pandas as pd
 import re
 import spacy
+from sklearn.model_selection import StratifiedKFold
 
 def clean_text(text, nlp):
     """Basic text cleaning for training and evaluation.
@@ -41,9 +42,9 @@ def clean_text(text, nlp):
 
     return text.lower()
 
-def prepare_text(data, language='de'):
+def prepare_text(data, language='de', col='text'):
     nlp = spacy.load(language)
-    return data.text.apply(lambda x: clean_text(x, nlp))
+    return data['text'].apply(lambda x: clean_text(x, nlp))
 
 
 def apply_cat_id(x, labels):
@@ -52,3 +53,19 @@ def apply_cat_id(x, labels):
         return int(labels[x])
     except:
         return -1
+
+def get_stratified_split(data, n_splits=5, max_count=1):
+    splits = []
+    count = 1
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=123)
+    for index, _ in skf.split(data, data.pred_id):
+        splits.append(index)
+        if count == max_count:
+            break
+        count += 1   
+    return splits
+
+def append_iter():
+    """Add iteration ID to DataFrame"""
+    #TODO:
+    pass

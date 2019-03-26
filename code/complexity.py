@@ -11,6 +11,8 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer
 from nltk.corpus import stopwords  
 
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB, ComplementNB
+
 import pandas as pd
 import numpy as np
 
@@ -67,22 +69,24 @@ def prepare_split(data, split=True, vectorize=False, oversample=False):
     return X_train, y_train, X_test, y_test
 
 def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=False):
-    #TODO: fix test split for use case
+    _data = data.copy()
+    #TODO: fixate test split for use case
 
     # Assign labels
-    data['cat_id'] = data['label'].apply(lambda x: ut.apply_cat_id(x, cat_map))
-    data = data[data['cat_id'] != -1].copy()
-    print(f'[INFO] Data available for training -> {len(data)}')
+    _data['cat_id'] = _data['label'].apply(lambda x: ut.apply_cat_id(x, cat_map))
+    _data = _data[_data['cat_id'] != -1].copy()
+    print(f'[INFO] Data available for training -> {len(_data)}')
 
     # Clean data & Split data
-    X_train, y_train, X_test, y_test = prepare_split(data, vectorize=vectorize, oversample=oversample)
+    X_train, y_train, X_test, y_test = prepare_split(_data, vectorize=vectorize, oversample=oversample)
 
     # Train
     ## Build Pipeline
+    #TODO: integrate preprocessor=ut.clean_text,
     text_clf = Pipeline([
         ('vect', HashingVectorizer(alternate_sign = False, stop_words = stopwords.words('german'), n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
-        ('clf', RandomForestClassifier()),
+        ('clf', ComplementNB()),
     ])
     ## Train
     text_clf.fit(X_train, y_train)
@@ -100,10 +104,18 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
 
     # Calculate Score
     complexity = np.mean(pred == y_test)
-    return complexity
+    return complexity, text_clf
 
+def apply_cat(data, cat_model, cat_map=None):
+    text = ut.prepare_text(data)
+    data['pred_id'] = cat_model.predict(text)
 
-def run(data):
+    if cat_map is not None:
+        data['pred'] = data.pred_id.apply(lambda y: [list(cat_map.keys())[list(cat_map.values()).index(x)] for x in [y]][0])
+
+    return data
+
+def run(data, estimate_clusters):
     """Run function for complexity task
 
     INPUT
@@ -112,17 +124,24 @@ def run(data):
     OUTPUT
     - score (float) : complexity score
     - report (dataframe)
+    - model
     """
-    
+    _data = data.copy()
+
     # Step 1 - check labels
-    res_labels, map_labels = check_labels(data)
+    res_labels, map_labels = check_labels(_data)
 
     # Step 2 
-    if len(res_labels['low']) > 0:
+    if len(res_labels['low']) > 0 and estimate_clusters:
         print('[INFO] Clustering needed for split.')
-        out = None
+        complexity, model = None, None
     else:
-        print('[INFO] Estimating complexity.')
-        out = get_cat_complexity(data, map_labels)
-        
-    return out
+        print('\n[INFO] Estimating complexity.')
+        complexity, model = get_cat_complexity(_data, map_labels)
+    
+    # Step 3
+    if model is not None:
+        print('\n[INFO] Applying model to data')
+        data_tagged = apply_cat(_data, model, map_labels)
+
+    return complexity, model, data_tagged
