@@ -105,4 +105,7 @@ venv.bak/
 
 # config
 config.ini
-*.config.yaml
+#*.config.yaml
+
+# versioning
+/version/

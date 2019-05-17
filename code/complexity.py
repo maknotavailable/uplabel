@@ -5,13 +5,12 @@ Estimate task complexity
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer
-from nltk.corpus import stopwords  
-
+from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB, ComplementNB
+from sklearn.metrics import confusion_matrix, classification_report
+
+from nltk.corpus import stopwords  
 
 import pandas as pd
 import numpy as np
@@ -70,19 +69,18 @@ def prepare_split(data, split=True, vectorize=False, oversample=False):
 
 def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=False):
     _data = data.copy()
-    #TODO: fixate test split for use case
+    #TODO: investigate fixed test split for use case
 
     # Assign labels
     _data['cat_id'] = _data['label'].apply(lambda x: ut.apply_cat_id(x, cat_map))
     _data = _data[_data['cat_id'] != -1].copy()
-    print(f'[INFO] Data available for training -> {len(_data)}')
+    print(f'\t[INFO] Data available for training -> {len(_data)}')
 
     # Clean data & Split data
     X_train, y_train, X_test, y_test = prepare_split(_data, vectorize=vectorize, oversample=oversample)
 
     # Train
     ## Build Pipeline
-    #TODO: integrate preprocessor=ut.clean_text,
     text_clf = Pipeline([
         ('vect', HashingVectorizer(alternate_sign = False, stop_words = stopwords.words('german'), n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
@@ -100,12 +98,13 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
 
     ## Test
     pred = text_clf.predict(X_test)
-    print('[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
+    print('\t[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
 
     # Calculate Score
-    complexity = (np.mean(pred == y_test) * (len(_data) / len(data)))*100
-    print(f'[INFO] Complexity Score -> {complexity}')
-    #TODO: update complexity score (function of dataset size)
+    complexity = np.mean(pred == y_test)
+    ## TODO: add data used for training -> (len(_data) / len(data)))*100
+    ## TODO: normalize complexity (softmax?)
+    print(f'\t[INFO] Complexity Score -> {complexity}')
     return complexity, text_clf
 
 def apply_cat(data, cat_model, cat_map=None):
@@ -117,6 +116,10 @@ def apply_cat(data, cat_model, cat_map=None):
 
     return data
 
+def get_cluster():
+    #TODO:
+    pass
+
 def run(data, estimate_clusters):
     """Run function for complexity task
 
@@ -125,8 +128,8 @@ def run(data, estimate_clusters):
 
     OUTPUT
     - score (float) : complexity score
+    - model (object)
     - report (dataframe)
-    - model
     """
     _data = data.copy()
 
@@ -136,9 +139,10 @@ def run(data, estimate_clusters):
     # Step 2 
     if len(res_labels['low']) > 0 and estimate_clusters:
         print('[INFO] Clustering needed for split.')
-        complexity, model = None, None
+        #TODO: add clustering
+        complexity, model = None, None #get_cluster()
     else:
-        print('\n[INFO] Estimating complexity.')
+        print('\n[INFO] Estimating complexity:')
         complexity, model = get_cat_complexity(_data, map_labels)
     
     # Step 3

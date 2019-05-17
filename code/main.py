@@ -1,87 +1,117 @@
 """
-Main function to run UpLabel.
+UpLabel.
+
+--Authors: Martin Kayser, Timm Walz. 
 
 
 """
+import yaml
 import pandas as pd
 
 # Custom functions
 import utils as ut
 import complexity as cp
 import split as sp
+import log as lg
 
-def create_instructions():
-    #TODO: automatically create instructions
-    #WHAT LABELS
-    #EXAMPLES PER LABEL
-    #WHAT TO EDIT
-    pass
+class Main():
+    def __init__(self, project):
+        #Load logs
+        fn_log = '../task/'+project+'/log.json'
+        self.log = lg.Log(fn_log)
+        self.log.read_log()
+        
+        #Load config
+        with open('../task/'+project+'/params.yaml', 'r') as stream:
+            params = yaml.safe_load(stream)
+        self.data_dir = params['data']['dir']
 
-def load_input(data, cols, extras, target='label', 
-                    language='de', task='cat', labelers=1,
-                    quality=1, estimate_clusters=True,
-                    iteration = 0):
-    """First contact data loading
+        # Run iteration
+        if any('iteration' in it.keys() for it in self.log.logs['iterations']):
+            self.log.set_iter(len(self.log.logs['iterations']))
+            self.load_input(params['data']['dir']+params['data']['source'],
+                            params['data']['cols'],
+                            params['data']['extras'],
+                            language = params['parameters']['language'],
+                            labelers = params['parameters']['labelers'],
+                            quality = params['parameters']['quality'],
+                            estimate_clusters=False)            
+        else:
+            self.log.set_iter(0)
+            self.load_input(params['data']['dir']+params['data']['source'],
+                            params['data']['cols'],
+                            params['data']['extras'],
+                            language = params['parameters']['language'],
+                            labelers = params['parameters']['labelers'],
+                            quality = params['parameters']['quality'],
+                            estimate_clusters=False)
 
-    INPUT
-    - data (dataframe(s) OR string) : dataframe(s) or path to data
-    - cols (list)
-    - extras (list)
-    - target (string)
-    - language (string)
-    - task (string) :
-        cat = classification
-        ent = entitiy (NER)
-    - labelers (int) 
-    - quality (int) : 
-        1 = strict
-        2 = medium / smart
-        3 = ignore
 
-    OUTPUT
-    - df_all (dataframe) : entire dataset, includiong all metadata
-    - df_split (dataframe(s)) : data split for labeling
-    
-    #TODO: implement iterations
-    """
-    if isinstance(data, str):
-        _fn = data
-        data = pd.read_csv(data, sep='\t', encoding='utf-8')
-    
-    #check if data is list of DFs or single
-    if isinstance(data, (list)):
-        print('[TODO] LIST OF DATAFRAMES')
-        #TODO: merge DFs
+    def prepare_data(self, data, cols, extras):
+        df_split = data[cols].copy()
+        df_all = data.copy()
+        print(f'[INFO] Input Length -> {len(df_split)}')
+        print(f'[INFO] Label Counts: \n{df_split.label.value_counts()}')
+        ## Standardize
+        df_split.columns = ['text','label','tag']
+        ## Drop Duplicates
+        df_split.sort_values(by=['label'], inplace=True)
+        df_split.drop_duplicates(subset=['text'], inplace=True)
+        df_all = df_all[df_all.index.isin(df_split.index)]
+        df_split.reset_index(drop=True, inplace=True)
+        df_split['iter_id'] = self.log.iter
+        print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
+        return df_all, df_split
 
-    # PREPARE
-    df_split = data[cols].copy()
-    df_all = data.copy()
-    print(f'[INFO] Input Length -> {len(df_split)}')
-    print(f'[INFO] Label Counts: \n{df_split.label.value_counts()}')
-    ## Standardize
-    df_split.columns = ['text','label','tag']
-    ## Drop Duplicates
-    df_split.sort_values(by=['label'], inplace=True)
-    df_split.drop_duplicates(subset=['text'], inplace=True)
-    df_all = df_all[df_all.index.isin(df_split.index)]
-    df_split.reset_index(drop=True, inplace=True)
-    #TODO: special case for different iterations
-    df_split['iter_id'] = 0
-    print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
-    
-    # COMPLEXITY
-    complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters)
+    def load_input(self, data, cols, extras, target='label', 
+                        language='de', task='cat', labelers=1,
+                        quality=1, estimate_clusters=True):
+        """First contact data loading
 
-    ## Merge with df_all
-    # col_names = df_all.columns.values + df_split.columns.values
-    df_all = pd.concat([df_all, df_split], sort=False, axis=1) #, ignore_index=True) #, names=col_names)
+        INPUT
+        - data (dataframe(s) OR string) : dataframe(s) or path to data
+        - cols (list)
+        - extras (list)
+        - target (string)
+        - language (string)
+        - task (string) :
+            cat = classification
+            ent = entitiy (NER)
+        - labelers (int) 
+        - quality (int) : 
+            1 = strict
+            2 = medium / smart
+            3 = ignore
 
-    if m_complexity is None:
-        ##TODO: Run Clustering for stratified labeling split
-        pass
+        OUTPUT
+        - df_all (dataframe) : entire dataset, includiong all metadata
+        - df_split (dataframe(s)) : data split for labeling
+        """
+        if isinstance(data, str):
+            _fn = data
+            data = pd.read_csv(data, sep='\t', encoding='utf-8')
+        
+        if self.log.iter > 0:
+            data = pd.concat([data, ])
+        
 
-    # SPLIT
-    df_splits = sp.apply_split(df_split, _fn, complexity, labelers)
-    
-    return df_all, df_splits
+        ### PREPARE ###
+        df_all, df_split = self.prepare_data(data, cols, extras)
+        
+        ### COMPLEXITY ###
+        complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters)
 
+        ## Log results
+        self.log.write_log('complexity', complexity)
+        self.log.write_log('performance', complexity)
+        self.log.write_log('data_length', len(df_all))
+        self.log.write_log('train_length', len(df_split[~df_split.label.isna()]))
+        # END
+
+        ## Merge with df_all
+        df_all = pd.concat([df_all, df_split], sort=False, axis=1)
+
+        ### SPLIT ###
+        df_splits = sp.apply_split(df_split, _fn, complexity, labelers)
+        
+        return df_all, df_splits
