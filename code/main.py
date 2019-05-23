@@ -12,6 +12,7 @@ import pandas as pd
 import utils as ut
 import complexity as cp
 import split as sp
+import join as jo
 import log as lg
 
 class Main():
@@ -63,13 +64,13 @@ class Main():
         print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
         return df_all, df_split
 
-    def load_input(self, data, cols, extras, target='label', 
+    def load_input(self, path, cols, extras, target='label', 
                         language='de', task='cat', labelers=1,
                         quality=1, estimate_clusters=True):
         """First contact data loading
 
         INPUT
-        - data (dataframe(s) OR string) : dataframe(s) or path to data
+        - path (string) : path to data
         - cols (list)
         - extras (list)
         - target (string)
@@ -87,13 +88,15 @@ class Main():
         - df_all (dataframe) : entire dataset, includiong all metadata
         - df_split (dataframe(s)) : data split for labeling
         """
-        if isinstance(data, str):
-            _fn = data
-            data = pd.read_csv(data, sep='\t', encoding='utf-8')
         
         if self.log.iter > 0:
-            data = pd.concat([data, ])
-        
+            load_iter = self.log.iter - 1
+            print(f'[INFO] Loading splits from iteration {load_iter}.')
+            data = jo.load_iteration(self.data_dir, load_iter)
+        else:
+            # Load first iteration
+            data = pd.read_csv(path, sep='\t', encoding='utf-8')
+
 
         ### PREPARE ###
         df_all, df_split = self.prepare_data(data, cols, extras)
@@ -110,8 +113,10 @@ class Main():
 
         ## Merge with df_all
         df_all = pd.concat([df_all, df_split], sort=False, axis=1)
+        df_all.to_csv('.'.join(path.split('.')[:-1]) + f'-it_{self.log.iter}-residual.txt', sep='\t',encoding='utf-8')
 
         ### SPLIT ###
-        df_splits = sp.apply_split(df_split, _fn, complexity, labelers)
-        
+        df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter)
+            # Save residual data
+    
         return df_all, df_splits

@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB, ComplementNB
 from sklearn.metrics import confusion_matrix, classification_report
 
-from nltk.corpus import stopwords  
+# from nltk.corpus import stopwords  
 
 import pandas as pd
 import numpy as np
@@ -73,7 +73,7 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
 
     # Assign labels
     _data['cat_id'] = _data['label'].apply(lambda x: ut.apply_cat_id(x, cat_map))
-    _data = _data[_data['cat_id'] != -1].copy()
+    _data = _data[_data['cat_id'] != -1].reset_index(drop=True).copy()
     print(f'\t[INFO] Data available for training -> {len(_data)}')
 
     # Clean data & Split data
@@ -82,7 +82,7 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     # Train
     ## Build Pipeline
     text_clf = Pipeline([
-        ('vect', HashingVectorizer(alternate_sign = False, stop_words = stopwords.words('german'), n_features = 2**16)),
+        ('vect', HashingVectorizer(alternate_sign = False, n_features = 2**16)), #stop_words = stopwords.words('german'), 
         ('tfidf', TfidfTransformer()),
         ('clf', ComplementNB()),
     ])

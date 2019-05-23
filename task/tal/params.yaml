@@ -1,6 +1,6 @@
 data:
     dir: C:/Users/makayser/Desktop/ul_label/tal/
-    source: raw_v1.txt
+    source: input.txt
     cols: ['text_b','label','tag']
     extras: ['entity', 'entity_type', 'comment', 'text']
     target_column: target
@@ -9,6 +9,6 @@ data:
 parameters:
     task: cat
     language: de
-    labelers: 3
+    labelers: 2
     quality: 1
     estimate_clusters: True
