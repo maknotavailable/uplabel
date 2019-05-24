@@ -16,7 +16,7 @@ import join as jo
 import log as lg
 
 class Main():
-    def __init__(self, project):
+    def __init__(self, project, debug_iter_id=None):
         #Load logs
         fn_log = '../task/'+project+'/log.json'
         self.log = lg.Log(fn_log)
@@ -28,7 +28,17 @@ class Main():
         self.data_dir = params['data']['dir']
 
         # Run iteration
-        if any('iteration' in it.keys() for it in self.log.logs['iterations']):
+        if debug_iter_id is not None:
+            # Debug mode
+            self.log.set_iter(debug_iter_id)
+            self.load_input(params['data']['dir']+params['data']['source'],
+                            params['data']['cols'],
+                            params['data']['extras'],
+                            language = params['parameters']['language'],
+                            labelers = params['parameters']['labelers'],
+                            quality = params['parameters']['quality'],
+                            estimate_clusters=False)
+        elif any('iteration' in it.keys() for it in self.log.logs['iterations']):
             self.log.set_iter(len(self.log.logs['iterations']))
             self.load_input(params['data']['dir']+params['data']['source'],
                             params['data']['cols'],
@@ -117,6 +127,5 @@ class Main():
 
         ### SPLIT ###
         df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter)
-            # Save residual data
     
         return df_all, df_splits
