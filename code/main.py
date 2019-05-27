@@ -37,7 +37,7 @@ class Main():
                             language = params['parameters']['language'],
                             labelers = params['parameters']['labelers'],
                             quality = params['parameters']['quality'],
-                            estimate_clusters=False)
+                            estimate_clusters = params['parameters']['estimate_clusters'])
         elif any('iteration' in it.keys() for it in self.log.logs['iterations']):
             self.log.set_iter(len(self.log.logs['iterations']))
             self.load_input(params['data']['dir']+params['data']['source'],
@@ -46,7 +46,7 @@ class Main():
                             language = params['parameters']['language'],
                             labelers = params['parameters']['labelers'],
                             quality = params['parameters']['quality'],
-                            estimate_clusters=False)            
+                            estimate_clusters = params['parameters']['estimate_clusters'])            
         else:
             self.log.set_iter(0)
             self.load_input(params['data']['dir']+params['data']['source'],
@@ -55,7 +55,7 @@ class Main():
                             language = params['parameters']['language'],
                             labelers = params['parameters']['labelers'],
                             quality = params['parameters']['quality'],
-                            estimate_clusters=False)
+                            estimate_clusters = params['parameters']['estimate_clusters'])
 
 
     def prepare_data(self, data, cols, extras):
