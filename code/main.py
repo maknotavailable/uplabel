@@ -57,7 +57,6 @@ class Main():
                             quality = params['parameters']['quality'],
                             estimate_clusters = params['parameters']['estimate_clusters'])
 
-
     def prepare_data(self, data, cols, extras):
         df_split = data[cols].copy()
         df_all = data.copy()
@@ -72,7 +71,7 @@ class Main():
         df_split.reset_index(drop=True, inplace=True)
         df_split['iter_id'] = self.log.iter
         print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
-        assert len(df_split[df_split.label == '']) != 0, '[ERROR] There is no data left to label.'
+        # assert len(df_split[df_split.label == '']) != 0, '[ERROR] There is no data left to label.'
         return df_all, df_split
 
     def load_input(self, path, cols, extras, target='label', 
