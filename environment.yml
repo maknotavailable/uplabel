@@ -14,6 +14,7 @@ dependencies:
 - pip:
   # German Spacy NLP Model #TODO: if used in docker, update
   - https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-2.1.0/de_core_news_sm-2.1.0.tar.gz#egg=de_core_news_sm
+  - imblearn
   - openpyxl 
   - pyyaml
   - xlrd

@@ -6,7 +6,7 @@ A simple, automated, labeling tool for text classification and entity recognitio
 2. Start 'Test - Pipeline' notebook
 
 # Authors
-Timm Walz (@torsion214)
+Timm Walz (@torsion214)    
 Martin Kayser (@maknotavailable)
 
 # Open Tasks

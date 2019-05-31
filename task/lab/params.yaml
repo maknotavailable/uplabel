@@ -1,0 +1,14 @@
+data:
+    dir: ~/library/data/lab/
+    source: input.txt
+    cols: ['text','label','tag']
+    extras: []
+    target_column: target
+    text_column: text
+
+parameters:
+    task: cat
+    language: de
+    labelers: 2
+    quality: 1
+    estimate_clusters: True
