@@ -63,7 +63,7 @@ class Main():
         df_split = data[cols].copy()
         df_all = data.copy()
         print(f'[INFO] Input Length -> {len(df_split)}')
-        print(f'[INFO] Label Counts: \n{df_split.label.value_counts()}')
+        print(f'[INFO] Label Summary: \n{df_split.label.value_counts()}')
         ## Standardize
         if 'tag' not in df_split.columns:
             df_split['tag'] = ''
@@ -75,6 +75,7 @@ class Main():
         df_split.reset_index(drop=True, inplace=True)
         df_split['iter_id'] = self.log.iter
         print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
+        assert len(df_split[df_split.label == '']) != 0, '[ERROR] There is no data left to label.'
         return df_all, df_split
 
     def load_input(self, path, cols, extras, target='label', 
