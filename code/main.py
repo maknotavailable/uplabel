@@ -59,14 +59,11 @@ class Main():
 
 
     def prepare_data(self, data, cols, extras):
-        #TODO: handling of tag and comment field
         df_split = data[cols].copy()
         df_all = data.copy()
         print(f'[INFO] Input Length -> {len(df_split)}')
         print(f'[INFO] Label Summary: \n{df_split.label.value_counts()}')
         ## Standardize
-        if 'tag' not in df_split.columns:
-            df_split['tag'] = ''
         df_split.columns = ['text','label','tag']
         ## Drop Duplicates
         df_split.sort_values(by=['label'], inplace=True)
@@ -116,7 +113,7 @@ class Main():
         df_all, df_split = self.prepare_data(data, cols, extras)
         
         ### COMPLEXITY ###
-        complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters)
+        complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters, language)
 
         ## Log results
         self.log.write_log('complexity', complexity)

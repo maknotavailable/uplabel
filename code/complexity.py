@@ -116,11 +116,20 @@ def apply_cat(data, cat_model, cat_map=None):
 
     return data
 
-def get_cluster():
-    #TODO:
-    pass
+def get_cluster(data, language):
+    labels = data.category
+    nCl = np.unique(labels).shape[0]
+    # words = stopwords.words("german")
+    vectorizer = TfidfVectorizer(max_df=0.5, min_df=2)
+    X = vectorizer.fit_transform(data.text)
+    print("n_samples: %d, n_features: %d" % X.shape)
+    model = KMeans(n_clusters=nCl, init='k-means++', max_iter=100, n_init=1)
+    model.fit(X)
+    silscore = metrics.silhouette_score(X, model.labels_)
+    complexity = (silscore + 1)/2
+    return complexity, model
 
-def run(data, estimate_clusters):
+def run(data, estimate_clusters, language):
     """Run function for complexity task
 
     INPUT
@@ -140,7 +149,7 @@ def run(data, estimate_clusters):
     if len(res_labels['low']) > 0 and estimate_clusters:
         print('[INFO] Clustering needed for split.')
         #TODO: add clustering
-        complexity, model = None, None #get_cluster()
+        complexity, model = get_cluster(data, language)
     else:
         print('\n[INFO] Estimating complexity:')
         complexity, model = get_cat_complexity(_data, map_labels)
