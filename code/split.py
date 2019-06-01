@@ -21,9 +21,6 @@ def get_split(data, n_splits=5, max_count=1, idx_label='pred_id'):
     skf = StratifiedKFold(n_splits=max_count, shuffle=True, random_state=123)
     for index, _ in skf.split(data, data[idx_label]):
         splits.append(index)
-        # if count == max_count:
-            # break
-        # count += 1   
     #TODO: reduce split sized for high performing categories
     return splits
 
@@ -61,5 +58,7 @@ def apply_split(data, fn, complexity, labelers, iter_id, idx_label='pred_id'):
         print(f'[INFO] Storing split: {_fn_temp}')
         print(f'{_temp.pred.value_counts()}')
         _temp.loc[:,'comment'] = ''
-        _temp[['iter_id','text','pred','label','tag','comment']].to_excel(_fn_temp, encoding='utf-8')
+        _temp = _temp[['text','pred','tag','comment']]
+        _temp.columns = ['text','label','tag','comment']
+        _temp.to_excel(_fn_temp, encoding='utf-8')
     return df_splits

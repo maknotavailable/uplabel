@@ -1,5 +1,5 @@
 data:
-    dir: C:/Users/makayser/Desktop/ul_label/tal/
+    dir: C:/Users/makayser/Desktop/ul_local/tal/
     source: input.txt
     cols: ['text_b','label','tag']
     extras: ['entity', 'entity_type', 'comment', 'text']

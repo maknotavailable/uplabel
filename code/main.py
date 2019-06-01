@@ -122,7 +122,8 @@ class Main():
         # END
 
         ## Merge with df_all
-        df_all = pd.concat([df_all, df_split], sort=False, axis=1)
+        df_all = pd.concat([df_all[extras], df_split], sort=False, axis=1)
+        df_all.drop(['pred_id','pred'], axis=1, inplace=True)
         df_all.to_csv('.'.join(path.split('.')[:-1]) + f'-it_{self.log.iter}-residual.txt', sep='\t',encoding='utf-8')
 
         ### SPLIT ###

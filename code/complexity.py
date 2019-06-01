@@ -54,18 +54,8 @@ def prepare_split(data, split=True, vectorize=False, oversample=False):
         y_train = data.cat_id
         y_test = data.cat_id
 
-    if vectorize:
-        # X_train = get_vector(X_train)
-        # X_test = get_vector(X_test)
-        pass
-
-    # Optional: oversample minority class
-    if oversample:
-        smote = SMOTE('minority', random_state=12)
-        X_train, y_train = smote.fit_sample(X_train, y_train)
-    else:
-        y_train.plot('hist')
-        y_test.plot('hist')
+    y_train.plot('hist')
+    y_test.plot('hist')
     return X_train, y_train, X_test, y_test
 
 def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=False):

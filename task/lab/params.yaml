@@ -1,5 +1,6 @@
 data:
-    dir: ~/library/data/lab/
+    dir: C:/Users/makayser/Desktop/git/uplabel/data/lab/
+    labdir: ~/library/data/lab/
     source: input.txt
     cols: ['text','label','tag']
     extras: []
