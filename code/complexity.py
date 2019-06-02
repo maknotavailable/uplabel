@@ -130,12 +130,16 @@ def get_cluster_complexity(data, language):
     cat_map = _temp.copy()
     return complexity, text_clf, cat_map
 
-def apply_cat(data, cat_model, cat_map=None):
+def apply_cat(data, cat_model, cat_map, unsupervised):
     text = ut.prepare_text(data)
     data['pred_id'] = cat_model.predict(text)
 
-    if cat_map is not None:
+    if unsupervised:
+        print(cat_map)
+        data['pred'] = data.pred_id.apply(lambda y: cat_map[y])
+    else:
         data['pred'] = data.pred_id.apply(lambda y: [list(cat_map.keys())[list(cat_map.values()).index(x)] for x in [y]][0])
+        
     return data
 
 def run(data, estimate_clusters, language):
@@ -150,6 +154,7 @@ def run(data, estimate_clusters, language):
     - report (dataframe)
     """
     _data = data.copy()
+    unsupervised = False
 
     # Step 1 - check labels
     res_labels, map_labels = check_labels(_data)
@@ -160,12 +165,13 @@ def run(data, estimate_clusters, language):
     if len(res_labels['low']) > 0 and estimate_clusters:
         print('[INFO] Estimating complexity using UNSUPERVISED approach.')
         complexity, model, map_labels = get_cluster_complexity(_data, language)
+        unsupervised = True
     else:
         print('\n[INFO] Estimating complexity using SUPERVISED approach.')
         complexity, model = get_cat_complexity(_data, map_labels)
     
     # Step 3
     print('\n[INFO] Applying model to data')
-    data_tagged = apply_cat(_data, model, map_labels)
+    data_tagged = apply_cat(_data, model, map_labels, unsupervised=True)
 
     return complexity, model, data_tagged
