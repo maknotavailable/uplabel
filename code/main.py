@@ -63,10 +63,12 @@ class Main():
         print(f'[INFO] Input Length -> {len(df_split)}')
         print(f'[INFO] Label Summary: \n{df_split.label.value_counts()}')
         ## Standardize
+        if 'tag' not in df_split.columns:
+            df_split['tag'] = ''
         df_split.columns = ['text','label','tag']
         ## Drop Duplicates
         df_split.sort_values(by=['label'], inplace=True)
-        df_split.drop_duplicates(subset=['text'], inplace=True)
+        df_split.drop_duplicates(subset=['text'], keep='first', inplace=True)
         df_all = df_all[df_all.index.isin(df_split.index)]
         df_split.reset_index(drop=True, inplace=True)
         df_split['iter_id'] = self.log.iter
@@ -122,7 +124,8 @@ class Main():
         # END
 
         ## Merge with df_all
-        df_all = pd.concat([df_all[extras], df_split], sort=False, axis=1)
+        # df_all = pd.concat([df_all[extras], df_split], sort=False, axis=1)
+        df_all = df_split.copy()
         df_all.drop(['pred_id','pred'], axis=1, inplace=True)
         df_all.to_csv('.'.join(path.split('.')[:-1]) + f'-it_{self.log.iter}-residual.txt', sep='\t',encoding='utf-8')
 

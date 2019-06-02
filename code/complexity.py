@@ -54,8 +54,6 @@ def prepare_split(data, split=True, vectorize=False, oversample=False):
         y_train = data.cat_id
         y_test = data.cat_id
 
-    y_train.plot('hist')
-    y_test.plot('hist')
     return X_train, y_train, X_test, y_test
 
 def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=False):
@@ -63,7 +61,7 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     #TODO: investigate fixed test split for use case
 
     # Assign labels
-    _data['cat_id'] = _data['label'].apply(lambda x: ut.apply_cat_id(x, cat_map))
+    _data['cat_id'] = _data['label'].apply(lambda x: ut.apply_pred_id(x, cat_map))
     _data = _data[_data['cat_id'] != -1].reset_index(drop=True).copy()
     print(f'\t[INFO] Data available for training -> {len(_data)}')
 
@@ -102,11 +100,11 @@ def get_cluster_complexity(data, language):
     
     # Fit cluster model
     ## Cluster Count
-    nCl = len(data.label.drop_duplicates())
+    nCl = len(data[~data.label.isna()].label.drop_duplicates()) 
     pipe = Pipeline([
         ('vect', TfidfVectorizer(max_df=0.5, min_df=2)),
         ('tfidf', TfidfTransformer()),
-        ('clf', KMeans(n_clusters=nCl, init='k-means++', max_iter=100, n_init=1)),
+        ('clf', KMeans(n_clusters=nCl, init='k-means++', max_iter=100, n_init=1, random_state=0)),
     ])
     pipe.fit(data.text_clean)
     vectorizer = TfidfVectorizer(max_df=0.5, min_df=2)
@@ -120,17 +118,16 @@ def get_cluster_complexity(data, language):
     
     # Mapping Table
     _temp = data[data.label != ''].copy()
-    _temp['cluster'] = pred   
+    _temp['cluster'] = pred
     _temp = _temp[["cluster", "label","text"]].groupby(["cluster", "label"]).count().sort_values("text").groupby(level=0).tail(1)
     _temp = _temp.reset_index()
     cat_map = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
 
     return complexity, pipe, cat_map
 
-def apply_cat(data, cat_model, cat_map, unsupervised):
+def apply_pred(data, cat_model, cat_map, unsupervised):
     text = ut.prepare_text(data)
     data['pred_id'] = cat_model.predict(text)
-
     if unsupervised:
         data['pred'] = data.pred_id.apply(lambda y: cat_map[y])
     else:
@@ -168,6 +165,6 @@ def run(data, estimate_clusters, language):
     
     # Step 3
     print('\n[INFO] Applying model to data')
-    data_tagged = apply_cat(_data, model, map_labels, unsupervised=True)
+    data_tagged = apply_pred(_data, model, map_labels, unsupervised=unsupervised)
 
     return complexity, model, data_tagged

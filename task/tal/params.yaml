@@ -1,8 +1,8 @@
 data:
     dir: C:/Users/makayser/Desktop/ul_local/tal/
     source: input.txt
-    cols: ['text_b','label','tag']
-    extras: ['entity', 'entity_type', 'comment', 'text']
+    cols: ['text','label','tag']
+    extras: ['entity', 'entity_type', 'comment', 'text_raw','text_a']
     target_column: target
     text_column: text
 

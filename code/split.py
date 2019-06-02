@@ -46,6 +46,7 @@ def apply_split(data, fn, complexity, labelers, iter_id, idx_label='pred_id'):
     # Apply split
     #TODO: apply active learning to split (a: confidence, b: difference)
     #TODO: if iteration == 0, create test set. else load given test set.
+    #TODO: Visualize split
     split_indexes = get_split(_data, n_splits=n_splits, max_count=labelers, idx_label=idx_label)
     df_splits = []
     for count, split in enumerate(split_indexes):

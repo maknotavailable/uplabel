@@ -39,7 +39,7 @@ def prepare_text(data, language='de', col='text', stopwords=None):
         res = data[col].apply(lambda x: clean_text(x, nlp, stopwords))
     return res
 
-def apply_cat_id(x, labels):
+def apply_pred_id(x, labels):
     """Map Categories to Numeric Labels"""
     try:
         return int(labels[x])
