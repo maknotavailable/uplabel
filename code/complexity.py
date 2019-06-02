@@ -72,23 +72,23 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
 
     # Train
     ## Build Pipeline
-    text_clf = Pipeline([
+    pipe = Pipeline([
         ('vect', HashingVectorizer(alternate_sign = False, n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
         ('clf', ComplementNB()),
     ])
     ## Train
-    text_clf.fit(X_train, y_train)
+    pipe.fit(X_train, y_train)
 
     # Store
     if save:
         out_file = '../model/cat.ml'
         with open(out_file, "wb") as fn:
-            pickle.dump(text_clf, fn)
+            pickle.dump(pipe, fn)
             pickle.dump(cat_map, fn)
 
     ## Test
-    pred = text_clf.predict(X_test)
+    pred = pipe.predict(X_test)
     print('\t[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
 
     # Calculate Score
@@ -96,46 +96,42 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     ## TODO: add data used for training -> (len(_data) / len(data)))*100
     ## TODO: normalize complexity (softmax?)
     print(f'\t[INFO] Complexity Score -> {complexity}')
-    return complexity, text_clf
+    return complexity, pipe
 
 def get_cluster_complexity(data, language):
-    nCl = len(data.label.drop_duplicates())
-
+    
     # Fit cluster model
-    text_clf = Pipeline([
+    ## Cluster Count
+    nCl = len(data.label.drop_duplicates())
+    pipe = Pipeline([
         ('vect', TfidfVectorizer(max_df=0.5, min_df=2)),
         ('tfidf', TfidfTransformer()),
         ('clf', KMeans(n_clusters=nCl, init='k-means++', max_iter=100, n_init=1)),
     ])
-    text_clf.fit(data.text_clean)
+    pipe.fit(data.text_clean)
     vectorizer = TfidfVectorizer(max_df=0.5, min_df=2)
     X = vectorizer.fit_transform(data.text_clean)
 
     # Calculate complexity
-    pred = text_clf.predict(data.text_clean)
-    _temp = data.copy()
-    _temp = _temp[_temp.label != '']
-    _temp['cluster'] = pred
-    #cat_map = None
-    
+    pred = pipe.predict(data.text_clean)
     silscore = silhouette_score(X, pred)
     complexity = (silscore + 1)/2
     print(f'\t[INFO] Complexity Score -> {complexity}')
     
     # Mapping Table
-    cat_map = _temp.groupby(["cluster", "label"]).count().sort_values("text").groupby(level=0).tail(1)
-    del _temp['text'], _temp['tag']
+    _temp = data[data.label != ''].copy()
+    _temp['cluster'] = pred   
+    _temp = _temp[["cluster", "label","text"]].groupby(["cluster", "label"]).count().sort_values("text").groupby(level=0).tail(1)
     _temp = _temp.reset_index()
-    _temp = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
-    cat_map = _temp.copy()
-    return complexity, text_clf, cat_map
+    cat_map = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
+
+    return complexity, pipe, cat_map
 
 def apply_cat(data, cat_model, cat_map, unsupervised):
     text = ut.prepare_text(data)
     data['pred_id'] = cat_model.predict(text)
 
     if unsupervised:
-        print(cat_map)
         data['pred'] = data.pred_id.apply(lambda y: cat_map[y])
     else:
         data['pred'] = data.pred_id.apply(lambda y: [list(cat_map.keys())[list(cat_map.values()).index(x)] for x in [y]][0])
