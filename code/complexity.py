@@ -113,15 +113,21 @@ def get_cluster_complexity(data, language):
 
     # Calculate complexity
     pred = text_clf.predict(data.text_clean)
-    #TODO: create mapping table for labels
     _temp = data.copy()
     _temp = _temp[_temp.label != '']
     _temp['cluster'] = pred
-    cat_map = None
+    #cat_map = None
     
     silscore = silhouette_score(X, pred)
     complexity = (silscore + 1)/2
     print(f'\t[INFO] Complexity Score -> {complexity}')
+    
+    # Mapping Table
+    cat_map = _temp.groupby(["cluster", "label"]).count().sort_values("text").groupby(level=0).tail(1)
+    del _temp['text'], _temp['tag']
+    _temp = _temp.reset_index()
+    _temp = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
+    cat_map = _temp.copy()
     return complexity, text_clf, cat_map
 
 def apply_cat(data, cat_model, cat_map=None):
@@ -130,7 +136,6 @@ def apply_cat(data, cat_model, cat_map=None):
 
     if cat_map is not None:
         data['pred'] = data.pred_id.apply(lambda y: [list(cat_map.keys())[list(cat_map.values()).index(x)] for x in [y]][0])
-
     return data
 
 def run(data, estimate_clusters, language):
