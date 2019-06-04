@@ -8,13 +8,13 @@ from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import Normalizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB, ComplementNB
-from sklearn.metrics import confusion_matrix, classification_report, silhouette_score
+from sklearn.metrics import classification_report, silhouette_score, f1_score
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-
+from utils import CleanText
 import pandas as pd
 import numpy as np
 
@@ -71,14 +71,16 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     # Train
     ## Build Pipeline
     pipe = Pipeline([
+        # ('clean', CleanText(language='de')),TODO:
         ('vect', HashingVectorizer(alternate_sign = False, n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
-        ('clf', ComplementNB()),
+        ('clf', SGDClassifier(loss='modified_huber')),
     ])
     ## Train
     pipe.fit(X_train, y_train)
 
     # Store
+    #TODO: store model for scoring application
     if save:
         out_file = '../model/cat.ml'
         with open(out_file, "wb") as fn:
@@ -90,7 +92,7 @@ def get_cat_complexity(data, cat_map, vectorize=False, oversample=False, save=Fa
     print('\t[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
 
     # Calculate Score
-    complexity = np.mean(pred == y_test)
+    complexity = f1_score(y_test, pred, average='weighted')
     ## TODO: add data used for training -> (len(_data) / len(data)))*100
     ## TODO: normalize complexity (softmax?)
     print(f'\t[INFO] Complexity Score -> {complexity}')
@@ -100,7 +102,7 @@ def get_cluster_complexity(data, language):
     
     # Fit cluster model
     ## Cluster Count
-    nCl = len(data[~data.label.isna()].label.drop_duplicates()) 
+    nCl = len(data[(~data.label.isna()) & (data.label != '')].label.drop_duplicates()) 
     pipe = Pipeline([
         ('vect', TfidfVectorizer(max_df=0.5, min_df=2)),
         ('tfidf', TfidfTransformer()),
@@ -125,13 +127,31 @@ def get_cluster_complexity(data, language):
 
     return complexity, pipe, cat_map
 
+def calculate_al_score(proba):
+    """
+    Calculate Active Learning Score used in Split
+    
+    Method: Margin Sampling
+    """
+    # _sorted = proba[np.argsort(proba)]
+    # #TODO:
+    # print(_sorted)
+    # print(_sorted[:,0])
+    # _al = np.subtract(_sorted[:,0],_sorted[:,1])
+    # print(_al)
+    # print(_al.shape)
+    return 0
+
 def apply_pred(data, cat_model, cat_map, unsupervised):
     text = ut.prepare_text(data)
     data['pred_id'] = cat_model.predict(text)
+    _predict_proba = cat_model.predict_proba(text)
     if unsupervised:
         data['pred'] = data.pred_id.apply(lambda y: cat_map[y])
+        data['al'] = None
     else:
         data['pred'] = data.pred_id.apply(lambda y: [list(cat_map.keys())[list(cat_map.values()).index(x)] for x in [y]][0])
+        data['al'] = calculate_al_score(_predict_proba)
         
     return data
 
@@ -143,7 +163,7 @@ def run(data, estimate_clusters, language):
 
     OUTPUT
     - score (float) : complexity score
-    - model (object)
+    - model (object) : sklearn pipeline
     - report (dataframe)
     """
     _data = data.copy()

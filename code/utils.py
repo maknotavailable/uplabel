@@ -7,6 +7,38 @@ import pandas as pd
 import re
 import spacy
 
+from sklearn.base import TransformerMixin
+from sklearn.pipeline import Pipeline
+
+class CleanText(TransformerMixin):
+    def __init__(self, language='de', stopwords=None):
+        self.nlp = spacy.load(language, disable=['ner','parser','tagger'])
+        if stopwords is not isinstance(stopwords, list):
+            with open('../assets/stopwords_' + language +'.txt', encoding='utf-8') as fn:
+                self.stopwords = fn.read()
+        # if self.stopwords is None:
+        #     self.stopwords = []
+
+    def transform(self, text):
+        if type(text) != str:
+            print('\t[INFO] Found an empty row during text cleaning.')
+            text = ' '
+        else:      
+            # Lemmatize
+            text = ' '.join([t.lemma_ for t in self.nlp(text) if t.text not in self.stopwords])   
+        return text.strip().lower()
+
+    # def fit(self, *_):
+        # return self
+    def fit(self, text, *_):
+        if type(text) != str:
+            print('\t[INFO] Found an empty row during text cleaning.')
+            text = ' '
+        else:      
+            # Lemmatize
+            text = ' '.join([t.lemma_ for t in self.nlp(text) if t.text not in self.stopwords])   
+        return text.strip().lower()
+
 def clean_text(text, nlp, stopwords):
     """Basic text cleaning for training and evaluation.
 

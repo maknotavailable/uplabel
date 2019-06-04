@@ -61,7 +61,7 @@ class Main():
         df_split = data[cols].copy()
         df_all = data.copy()
         print(f'[INFO] Input Length -> {len(df_split)}')
-        print(f'[INFO] Label Summary: \n{df_split.label.value_counts()}')
+        print(f'[INFO] Label Summary: \n{df_split[df_split.label != ""].label.value_counts()}')
         ## Standardize
         if 'tag' not in df_split.columns:
             df_split['tag'] = ''
@@ -97,7 +97,6 @@ class Main():
             3 = ignore
 
         OUTPUT
-        - df_all (dataframe) : entire dataset, includiong all metadata
         - df_split (dataframe(s)) : data split for labeling
         """
         
@@ -111,7 +110,7 @@ class Main():
 
 
         ### PREPARE ###
-        df_all, df_split = self.prepare_data(data, cols, extras)
+        __, df_split = self.prepare_data(data, cols, extras)
         
         ### COMPLEXITY ###
         complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters, language)
@@ -119,7 +118,7 @@ class Main():
         ## Log results
         self.log.write_log('complexity', complexity)
         self.log.write_log('performance', complexity)
-        self.log.write_log('data_length', len(df_all))
+        self.log.write_log('data_length', len(__))
         self.log.write_log('train_length', len(df_split[~df_split.label.isna()]))
         # END
 
@@ -132,4 +131,4 @@ class Main():
         ### SPLIT ###
         df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter)
     
-        return df_all, df_splits
+        return df_splits

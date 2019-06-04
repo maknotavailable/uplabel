@@ -5,7 +5,7 @@ Split dataset for labeling.
 """
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-def calculate_split(data_length, complexity, labelers):
+def get_split_size(data_length, complexity, labelers):
     #TODO: integrate overlap in split
     #TODO: consider adjusting split size based on #labelers
     #TODO: n_splits is the test/train split. this should be updated to labelers
@@ -27,8 +27,7 @@ def get_split(data, n_splits=5, max_count=1, idx_label='pred_id'):
 def get_sample(data, sample_size):
     #TODO: activate learning sort
     #TODO: increase quantity of low available cats
-    _data = data.copy()
-    return _data.sample(frac=sample_size, random_state=123)
+    return data.sample(frac=sample_size, random_state=222)
 
 def apply_split(data, fn, complexity, labelers, iter_id, idx_label='pred_id'):
     """Apply split to labeling dataset.
@@ -38,7 +37,7 @@ def apply_split(data, fn, complexity, labelers, iter_id, idx_label='pred_id'):
     """
     _data = data.copy()
     # Determine size based on complexity
-    n_splits, sample_size = calculate_split(len(_data), complexity, labelers)
+    n_splits, sample_size = get_split_size(len(_data), complexity, labelers)
 
     # Sample based on complexity
     _data = get_sample(_data, sample_size)

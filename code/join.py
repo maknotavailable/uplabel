@@ -6,9 +6,11 @@ import numpy as np
 
 def get_quality_score(df_truth, df_split):
     """Overlap with ground truth"""
-    _available = df_truth.merge(df_split, on=['index']).copy() #right_index=True, left_index=True
+    _available = df_truth[df_truth.label != ''].merge(df_split, on = ['index']).copy()
     _correct = _available[(_available['label_x'] == _available['label_y'])].copy()
     score = len(_correct) / len(_available)
+    if len(_available) == 0:
+        print(f'\t[INFO] No quality overlap detected.')
     return score
 
 def get_consistance_score(df_split):
