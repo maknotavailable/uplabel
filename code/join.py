@@ -13,7 +13,34 @@ def get_quality_score(df_truth, df_split):
 
 def get_consistance_score(df_split):
     """Overlap with other labelers"""
-        
+    # def get_consistance_score(df_split):
+    # print("[INFO]: GET CONSISTANCE SCORES ###################")
+
+    # # Group by Labeler
+    # grouped_labelers = df_split.groupby('labeler')
+    # grouped_labels = df_split.groupby('index')
+    
+    # scores = []
+    # major = []
+
+    # # Majority Vote: removed if no distinct majority
+    # print("[INFO]: MAJORITY LABELS ###################")
+    # for name, group in grouped_labels:
+    #     gsum = group.label.mode()
+    #     if len(gsum) == 1:
+    #         major.append({'index': name, 'label': gsum[0]})
+    # major = pd.DataFrame(major)
+    # print(major)
+    # print("")
+    
+    # print("[INFO]: OVERLAPS ###################")
+    # for name, group in grouped_labelers:
+    #     #### OVERLAP WITH MAJORITY
+    #     overlap_major = group.merge(major, on=['index', 'label'])
+    #     gt_overlap = len(overlap_major) / len(major)
+    #     print("GroundT Overlap", name, ":", gt_overlap)
+    #     scores.append({'labeler': name, 'gt_overlap': gt_overlap})
+    # return scores   
     #TODO:
     pass
 
