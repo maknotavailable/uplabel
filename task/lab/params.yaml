@@ -2,7 +2,7 @@ data:
     dir: C:/Users/makayser/Desktop/git/uplabel/data/lab/
     labdir: ~/library/data/lab/
     source: input.txt
-    cols: ['text','label','tag']
+    cols: ['text','label']
     extras: []
     target_column: target
     text_column: text

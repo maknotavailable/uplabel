@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 
-# class IterationControl:
-
 def get_quality_score(df_truth, df_split):
     """Overlap with ground truth"""
     _available = df_truth[df_truth.label != ''].merge(df_split, on = ['index']).copy()
@@ -19,43 +17,48 @@ def get_consistance_score(df_split):
     #TODO:
     pass
 
+def assign_lbl_score(x):
+    if x == '':
+        return 0
+    else:
+        return 1
+
+def prepare_data(data):
+    return data.reset_index(drop=False).replace(np.nan, '', regex=True)
+
 def load_splits(data_dir, iter_id):
     # Load Files
     df_splits = []
-    for _fn in os.scandir(data_dir):
-        if len(_fn.name.split('.')[0].split('-')) > 2:
-            _split = _fn.name.split('.')[0].split('-')[-1].split('_')[-1]
-            _iteration = int(_fn.name.split('.')[0].split('-')[-2].split('_')[-1])
-            
-            if 'residual' == _split and iter_id == _iteration:
-                residual = pd.read_csv(_fn.path, sep='\t', encoding='utf-8', index_col=0)
-                residual.reset_index(drop=False, inplace=True)
-                residual.replace(np.nan, '', regex=True, inplace=True)
-                path = '-'.join(_fn.name.split('-')[:2]) + '_train.txt'
-                def assign_lbl_score(x):
-                    if x == '':
-                        return 0
-                    else:
-                        return 1
-                residual['lbl_score'] = residual['label'].apply(assign_lbl_score)
-            elif iter_id == _iteration:
-                _temp_split = pd.read_excel(_fn.path, encoding='utf-8', index_col=0)
-                _temp_split.reset_index(drop=False, inplace=True)
-                _temp_split.replace(np.nan, '', regex=True, inplace=True)
-                quality_score = get_quality_score(residual, _temp_split)
-                _temp_split['lbl_score'] = quality_score
-                df_splits.append(_temp_split)
-                print(f'\t[INFO] Quality Score of Labeler {_split} -> {quality_score}')
-
+    try:
+        for _fn in os.scandir(data_dir):
+            if len(_fn.name.split('.')[0].split('-')) > 2:
+                _split = _fn.name.split('.')[0].split('-')[-1].split('_')[-1]
+                _iteration = int(_fn.name.split('.')[0].split('-')[-2].split('_')[-1])
+                if 'residual' == _split and iter_id == _iteration:
+                    residual = pd.read_csv(_fn.path, sep='\t', encoding='utf-8', index_col=0)
+                    residual = prepare_data(residual)
+                    residual.drop('level_0', axis=1, inplace=True)
+                    path = '-'.join(_fn.name.split('-')[:2]) + '_train.txt'
+                    residual['lbl_score'] = residual['label'].apply(assign_lbl_score)
+                elif iter_id == _iteration:
+                    _temp_split = pd.read_excel(_fn.path, encoding='utf-8', index_col=0)
+                    _temp_split = prepare_data(_temp_split)
+                    quality_score = get_quality_score(residual, _temp_split)
+                    _temp_split['lbl_score'] = quality_score
+                    df_splits.append(_temp_split)
+                    print(f'\t[INFO] Quality Score of Labeler {_split} -> {quality_score}')
+    except Exception as e:
+        print(f'[ERROR] Files seem to be missing, or you may have skipped an iteration -> {e}') 
     return residual, df_splits, path
 
 def join_splits(residual, df_splits):
-    data = residual.append(df_splits, sort=False, ignore_index=True) 
-    data.sort_values(by=['lbl_score'], ascending=False, inplace=True)
-    data.drop_duplicates(subset=['text'], keep='first', inplace=True)
-    data.set_index('index', inplace=True)
-    data.drop(['lbl_score'], axis=1, inplace=True)
-    return data
+    _data = residual.append(df_splits, sort=False, ignore_index=True) 
+    _data.sort_values(by=['lbl_score'], ascending=False, inplace=True)
+    _data.drop_duplicates(subset=['text'], keep='first', inplace=True)
+    _data.sort_values(by=['index'], ascending=True, inplace=True)
+    _data.set_index('index', inplace=True)
+    _data.drop(['lbl_score','al_score'], axis=1, inplace=True)
+    return _data
 
 def load_iteration(data_dir, iter_id):
     # Load

@@ -1,14 +1,18 @@
 data:
     dir: C:/Users/makayser/Desktop/ul_local/tal/
     source: input.txt
-    cols: ['text','label','tag']
+    cols: ['text','label']
     extras: ['entity', 'entity_type', 'comment', 'text_raw','text_a']
-    target_column: target
+    target_column: label
     text_column: text
 
 parameters:
     task: cat
     language: de
     labelers: 2
+    min_split_size: 300
+    max_split_size : False
     quality: 1
-    estimate_clusters: True
+    estimate_clusters: False
+    quality_size: 0.1
+    overlap_size: 0.1

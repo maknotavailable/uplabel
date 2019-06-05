@@ -28,7 +28,9 @@ class Log():
                 json.dump(self.logs,fn)
 
     def set_iter(self, iter):
-        print(f'[INFO] **** ITERATION # {iter} ****')
+        print('####################################')
+        print(f'**** \tITERATION # {iter} \t\t****')
+        print('####################################\n')
         self.iter = iter
         
         if len(self.logs['iterations']) != self.iter +1:

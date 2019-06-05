@@ -9,6 +9,11 @@ A simple, automated, labeling tool for text classification and entity recognitio
 Timm Walz (@torsion214)    
 Martin Kayser (@maknotavailable)
 
+# Glossary
+label       : target category used by model and to be labelled
+pred(_id)   : predicted label, respective numeric identifier
+split       : a subset of the data, to be distributed for manual labelling
+
 # Open Tasks
 - [] Integrate with neanno frontend (https://github.com/timoklimmer/neanno).
 - [] Support for Named Entity Recognition tasks.

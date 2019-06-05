@@ -7,6 +7,7 @@ UpLabel.
 """
 import yaml
 import pandas as pd
+import numpy as np
 
 # Custom functions
 import utils as ut
@@ -17,66 +18,67 @@ import log as lg
 
 class Main():
     def __init__(self, project, debug_iter_id=None):
-        #Load logs
+        print(f'Starting UpLabel >>>>\tProject {project.upper()}')
+
+        # Load logs
         fn_log = '../task/'+project+'/log.json'
         self.log = lg.Log(fn_log)
         self.log.read_log()
         
-        #Load config
+        # Load config
         with open('../task/'+project+'/params.yaml', 'r') as stream:
             params = yaml.safe_load(stream)
         self.data_dir = params['data']['dir']
 
-        # Run iteration
+        # Determine iteration
         if debug_iter_id is not None:
             # Debug mode
             self.log.set_iter(debug_iter_id)
-            self.load_input(params['data']['dir']+params['data']['source'],
-                            params['data']['cols'],
-                            params['data']['extras'],
-                            language = params['parameters']['language'],
-                            labelers = params['parameters']['labelers'],
-                            quality = params['parameters']['quality'],
-                            estimate_clusters = params['parameters']['estimate_clusters'])
         elif any('iteration' in it.keys() for it in self.log.logs['iterations']):
-            self.log.set_iter(len(self.log.logs['iterations']))
-            self.load_input(params['data']['dir']+params['data']['source'],
-                            params['data']['cols'],
-                            params['data']['extras'],
-                            language = params['parameters']['language'],
-                            labelers = params['parameters']['labelers'],
-                            quality = params['parameters']['quality'],
-                            estimate_clusters = params['parameters']['estimate_clusters'])            
+            self.log.set_iter(len(self.log.logs['iterations']))       
         else:
             self.log.set_iter(0)
-            self.load_input(params['data']['dir']+params['data']['source'],
-                            params['data']['cols'],
-                            params['data']['extras'],
-                            language = params['parameters']['language'],
-                            labelers = params['parameters']['labelers'],
-                            quality = params['parameters']['quality'],
-                            estimate_clusters = params['parameters']['estimate_clusters'])
+        
+        # Run iteration
+        self.run(params['data']['dir']+params['data']['source'],
+                        params['data']['cols'],
+                        params['data']['extras'],
+                        language = params['parameters']['language'],
+                        labelers = params['parameters']['labelers'],
+                        quality = params['parameters']['quality'],
+                        estimate_clusters = params['parameters']['estimate_clusters'])
 
     def prepare_data(self, data, cols, extras):
-        df_split = data[cols].copy()
-        df_all = data.copy()
-        print(f'[INFO] Input Length -> {len(df_split)}')
-        print(f'[INFO] Label Summary: \n{df_split[df_split.label != ""].label.value_counts()}')
+        df_split = data.copy() #[cols]
         ## Standardize
         if 'tag' not in df_split.columns:
             df_split['tag'] = ''
-        df_split.columns = ['text','label','tag']
+        if 'comment' not in df_split.columns:
+            df_split['comment'] = ''
+        
+        # df_split.columns = ['text','label','tag','comment']
+        print(f'[INFO] Input Length -> {len(df_split)}')
+        print(f'[INFO] Label Summary: \n{df_split[df_split.label != ""].label.value_counts()}')
+        
         ## Drop Duplicates
         df_split.sort_values(by=['label'], inplace=True)
         df_split.drop_duplicates(subset=['text'], keep='first', inplace=True)
-        df_all = df_all[df_all.index.isin(df_split.index)]
+        data = data[data.index.isin(df_split.index)]
+        df_split.replace(np.nan, '', regex=True, inplace=True)
         df_split.reset_index(drop=True, inplace=True)
+        df_split.reset_index(inplace=True) # create row ID
         df_split['iter_id'] = self.log.iter
-        print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
-        # assert len(df_split[df_split.label == '']) != 0, '[ERROR] There is no data left to label.'
-        return df_all, df_split
 
-    def load_input(self, path, cols, extras, target='label', 
+        print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
+        assert len(df_split[df_split.label == '']) != 0, \
+            '[ERROR] Congratulations, all your data is already labelled.'
+        assert len(df_split[df_split.label != '']) != 0, \
+            '[ERROR] None of the data is labelled. Please provide \
+            examples for each category first.'
+
+        return data, df_split
+
+    def run(self, path, cols, extras, target='label', 
                         language='de', task='cat', labelers=1,
                         quality=1, estimate_clusters=True):
         """First contact data loading
@@ -99,7 +101,7 @@ class Main():
         OUTPUT
         - df_split (dataframe(s)) : data split for labeling
         """
-        
+
         if self.log.iter > 0:
             load_iter = self.log.iter - 1
             print(f'[INFO] Loading splits from iteration {load_iter}.')
@@ -107,7 +109,6 @@ class Main():
         else:
             # Load first iteration
             data = pd.read_csv(path, sep='\t', encoding='utf-8')
-
 
         ### PREPARE ###
         __, df_split = self.prepare_data(data, cols, extras)
@@ -119,7 +120,8 @@ class Main():
         self.log.write_log('complexity', complexity)
         self.log.write_log('performance', complexity)
         self.log.write_log('data_length', len(__))
-        self.log.write_log('train_length', len(df_split[~df_split.label.isna()]))
+        self.log.write_log('labelled_length', len(df_split[df_split.label != '']))
+        self.log.write_log('labels', len(df_split[df_split.label != ''].label.drop_duplicates()))
         # END
 
         ## Merge with df_all
