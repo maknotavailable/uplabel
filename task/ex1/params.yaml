@@ -9,9 +9,9 @@ data:
 parameters:
     task: cat
     language: de
-    labelers: 2
+    labelers: 3
     min_split_size: 100
-    max_split_size : 200
+    max_split_size : 300
     quality: 1
     estimate_clusters: True
     quality_size: 0.1
