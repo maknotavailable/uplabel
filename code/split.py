@@ -3,7 +3,7 @@ Split dataset for labeling.
 
 
 """
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import StratifiedKFold
 
 def get_split_size(data_length, complexity, labelers):
     #TODO: consider adjusting split size based on #labelers

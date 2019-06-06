@@ -62,7 +62,10 @@ class Main():
         print(f'[INFO] Input Length -> {len(df_split)}')
         print(f'[INFO] Label Summary: \n{df_split[df_split.label != ""].label.value_counts()}')
         
-        ## Drop Duplicates
+        ## Drop Missing
+        df_split.dropna(subset=['text'], inplace=True)
+        df_split = df_split[df_split.text != '']
+        ## Drop Duplicates and missing
         df_split.sort_values(by=['label'], inplace=True)
         df_split.drop_duplicates(subset=['text'], keep='first', inplace=True)
         data = data[data.index.isin(df_split.index)]
