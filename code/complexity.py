@@ -151,10 +151,10 @@ def run(data, estimate_clusters, language):
     _data = data.copy()
     unsupervised = False
 
-    # Step 1 - check labels
+    # Check labels
     res_labels, map_labels = check_labels(_data)
 
-    # Step 2 - calculate complexity
+    # Calculate complexity
     if len(res_labels['low']) > 0 and estimate_clusters:
         print('\n[INFO] Estimating complexity using UNSUPERVISED approach.')
         complexity, model, map_labels = get_cluster_complexity(_data, len(map_labels), language)
@@ -164,7 +164,7 @@ def run(data, estimate_clusters, language):
         complexity, model = get_cat_complexity(_data, map_labels, language)
     print(f'\t[INFO] Complexity Score -> {complexity:.3}')
     
-    # Step 3
+    # Apply predictions to data
     print('\t[INFO] Applying model to data')
     data_tagged = apply_pred(_data, model, map_labels, unsupervised=unsupervised)
     if not unsupervised:
