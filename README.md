@@ -4,11 +4,11 @@ A simple, automated, labeling tool for text classification and entity recognitio
 
 #### Software Component Flow
 ---
-<div><img src="assets/MLADS_Components.png" align="left" width="60%"></div>  
+<p><img src="assets/MLADS_Components.png" align="center" width="60%"></p>  
 
 #### User Flow
 ---
-<img src="assets/MLADS_UserFlow.png" align="left" width="60%">
+<p><img src="assets/MLADS_UserFlow.png" align="center" width="60%"></p>
 
 # Setup
 1. Create a conda environment using environment.yml
