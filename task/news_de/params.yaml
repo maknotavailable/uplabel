@@ -1,5 +1,5 @@
 data:
-    dir: ../data/lab/ 
+    dir: ../data/news_de/ 
     source: input.txt
     cols: ['text','label']
     extras: []
