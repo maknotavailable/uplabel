@@ -1,6 +1,5 @@
 data:
-    dir: C:/Users/makayser/Desktop/git/uplabel/data/news/
-    dir2: ../data/news/ 
+    dir: ../data/news_en/ 
     source: input.txt
     cols: ['text','label']
     extras: []
