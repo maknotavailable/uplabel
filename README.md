@@ -2,6 +2,14 @@
 # UpLabel
 A simple, automated, labeling tool for text classification and entity recognition.
 
+#### Software Component Flow
+---
+<img src="assets/MLADS_Components.png" align="left" width="60%"><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>  
+
+#### User Flow
+---
+<img src="assets/MLADS_UserFlow.png" align="left" width="60%">
+
 # Setup
 1. Create a conda environment using environment.yml
 2. Start 'Test - Pipeline' notebook
