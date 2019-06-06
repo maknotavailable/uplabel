@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+from matplotlib import pyplot as plt
 # Custom functions
 import log as lg
 
@@ -15,7 +16,8 @@ class Reporting():
     def get_progress(self):
         return self.df_logs
 
-    def plot(self, col):
+    def plot(self, col, w=15, h=7):
+        plt.figure(figsize=(w,h))
         return self.df_logs[col].plot()
 
     def plot_multiple(self, cols):
