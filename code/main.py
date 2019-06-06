@@ -1,6 +1,23 @@
 """
 UpLabel.
 
+INPUT
+- path (string) : path to project directory
+- cols (list)
+- extras (list)
+- target (string)
+- language (string) :
+    de = german
+    en = english
+- task (string) :
+    cat = classification
+    ent = entitiy (NER)
+- labelers (int) : number of labelers
+- quality (int) : 
+    1 = strict
+    2 = medium / smart
+    3 = ignore
+
 --Authors: Martin Kayser, Timm Walz. 
 
 
@@ -86,25 +103,7 @@ class Main():
     def run(self, path, cols, extras, target='label', 
                         language='de', task='cat', labelers=1,
                         quality=1, estimate_clusters=True):
-        """Main function for UpLabel
-
-        INPUT
-        - path (string) : path to project directory
-        - cols (list)
-        - extras (list)
-        - target (string)
-        - language (string) :
-            de = german
-            en = english
-        - task (string) :
-            cat = classification
-            ent = entitiy (NER)
-        - labelers (int) : number of labelers
-        - quality (int) : 
-            1 = strict
-            2 = medium / smart
-            3 = ignore
-        """
+        """Main function for UpLabel"""
 
         if self.log.iter > 0:
             # Load iteration #

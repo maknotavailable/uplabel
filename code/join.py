@@ -22,7 +22,6 @@ def load_splits(data_dir, iter_id):
                 if 'residual' == _split and iter_id == _iteration:
                     residual = pd.read_csv(_fn.path, sep='\t', encoding='utf-8', index_col=0)
                     residual = prepare_data(residual)
-                    # residual.drop('level_0', axis=1, inplace=True)
                     path = '-'.join(_fn.name.split('-')[:2]) + '_train.txt'
                     residual['lbl_score'] = residual['label'].apply(assign_lbl_score)
                 elif iter_id == _iteration:
@@ -65,7 +64,6 @@ def get_consistance_score(df_split):
     # OVERLAP WITH MAJORITY
     scores = dict()
     for name, group in grouped_labelers:
-        
         overlap_major = group.merge(major, on=['index', 'label'])
         gt_overlap = len(overlap_major) / len(major)
         scores[name] =  gt_overlap
@@ -73,6 +71,7 @@ def get_consistance_score(df_split):
 
 def get_lbl_score(_residual, _df_splits_list):
     print("\t[INFO] Calculating labeler score")
+    
     _df_splits = pd.concat(_df_splits_list, ignore_index = True, sort = False)
     consistance_score = get_consistance_score(_df_splits)
     _df_splits_list_out = []

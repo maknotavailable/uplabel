@@ -21,7 +21,6 @@ class CleanText(TransformerMixin):
                 self.stopwords = []
 
     def clean_text(self, text):
-        #TODO: create custom spacy pipeline (docs = list(nlp.pipe(df.text)))
         if type(text) != str:
             print('\t[INFO] Found an empty row during text cleaning.')
             text = ' '
@@ -37,17 +36,6 @@ class CleanText(TransformerMixin):
 
     def fit(self, *_):
         return self
-
-# def prepare_text(data, language='de', col='text', stopwords=None):
-#     nlp = spacy.load(language, disable=['ner','parser','tagger'])
-#     if stopwords is not None and not isinstance(stopwords, list):
-#         with open('../assets/stopwords_' + language +'.txt', encoding='utf-8') as fn:
-#             stopwords = fn.read()
-#     if isinstance(data, str):
-#         res = clean_text(data, nlp, stopwords)
-#     else:
-#         res = data[col].apply(lambda x: clean_text(x, nlp, stopwords))
-#     return res
 
 def apply_pred_id(x, labels):
     """Map Categories to Numeric Labels"""

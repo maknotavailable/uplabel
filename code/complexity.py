@@ -69,8 +69,7 @@ def get_cat_complexity(data, cat_map, language, vectorize=False, oversample=Fals
         ('clean', CleanText(language=language)),
         ('vect', HashingVectorizer(alternate_sign = False, n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
-        ('smt', SMOTE(ratio='all',random_state=42)),
-        # ('clt', ComplementNB())
+        # ('smt', SMOTE(ratio='all',random_state=42)),
         ('clf', SGDClassifier(loss='modified_huber', max_iter=1000, tol=1e-3, random_state=123)),
     ])
     ## Train
@@ -86,12 +85,10 @@ def get_cat_complexity(data, cat_map, language, vectorize=False, oversample=Fals
 
     ## Test
     pred = pipe.predict(X_test)
-    print('\t[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
 
     # Calculate Score
+    print('\t[INFO] Complexity Estimation Report: \n',classification_report(y_test, pred))  
     complexity = f1_score(y_test, pred, average='weighted')
-    ## TODO: add data used for training -> (len(_data) / len(data)))*100
-    ## TODO: normalize complexity (softmax?)
     return complexity, pipe
 
 def get_cluster_complexity(data, n_cluster, language):
@@ -113,9 +110,9 @@ def get_cluster_complexity(data, n_cluster, language):
     
     # Mapping Table
     _temp = data.copy()
-    print(data.label.value_counts())
-    _temp['cluster'] = pred #TODO: getting mapping table is broken
-    _temp = _temp[["index","cluster", "label"]].groupby(["cluster", "label"]).count().sort_values("index").groupby(level=0).tail(1)
+    _temp['cluster'] = pred
+    _temp = _temp[["index","cluster", "label"]][_temp['label'] != '']
+    _temp = _temp.groupby(["cluster", "label"]).count().sort_values("index").groupby(level=0).tail(1)
     _temp = _temp.reset_index()
     cat_map = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
 

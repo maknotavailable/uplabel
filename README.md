@@ -26,9 +26,14 @@ Martin Kayser (@maknotavailable)
 | split | a subset of the data, to be distributed for manual labelling |
 
 # Open Tasks
-- [] Integrate with neanno frontend (https://github.com/timoklimmer/neanno).
-- [] Support for Named Entity Recognition tasks.
-- [] Support for Muli-Class Classification tasks.
-- [] Active learning: targeted false positives
-- [] Smart join: label quality score
-- [] Smart load: data integrity validation 
+## In Progress
+-[] Host as a service in Azure (via FA)
+-[] Improve complexity calculation
+## TODO
+-[] Integrate with neanno frontend (https://github.com/timoklimmer/neanno).
+-[] Support for Named Entity Recognition tasks.
+-[] Support for Muli-Class Classification tasks.
+-[] Active learning: targeted false positives
+-[] Smart join: label quality score
+-[] Smart load: data integrity validation 
+-[] Auto-create labeling documentation
