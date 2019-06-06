@@ -19,14 +19,16 @@ Timm Walz (@torsion214)
 Martin Kayser (@maknotavailable)
 
 # Glossary
-label       : target category used by model and to be labelled
-pred(_id)   : predicted label, respective numeric identifier
-split       : a subset of the data, to be distributed for manual labelling
+| Word | Description |
+|---|---|
+| label | target category used by model and to be labelled |
+| red(\_id) | predicted label, respective numeric identifier |
+| split | a subset of the data, to be distributed for manual labelling |
 
 # Open Tasks
- [] Integrate with neanno frontend (https://github.com/timoklimmer/neanno).
- [] Support for Named Entity Recognition tasks.
- [] Support for Muli-Class Classification tasks.
- [] Active learning: targeted false positives
- [] Smart join: label quality score
- [] Smart load: data integrity validation 
+- [] Integrate with neanno frontend (https://github.com/timoklimmer/neanno).
+- [] Support for Named Entity Recognition tasks.
+- [] Support for Muli-Class Classification tasks.
+- [] Active learning: targeted false positives
+- [] Smart join: label quality score
+- [] Smart load: data integrity validation 
