@@ -4,7 +4,7 @@ A simple, automated, labeling tool for text classification and entity recognitio
 
 #### Software Component Flow
 ---
-<img src="assets/MLADS_Components.png" align="left" width="60%"><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>  
+<div><img src="assets/MLADS_Components.png" align="left" width="60%"></div>  
 
 #### User Flow
 ---
