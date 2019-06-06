@@ -1,5 +1,5 @@
 data:
-    dir: ~/
+    dir: ../data/news/ 
     source: input.txt
     cols: ['text','label']
     extras: []
@@ -8,7 +8,7 @@ data:
 
 parameters:
     task: cat
-    language: de
+    language: en
     labelers: 3
     min_split_size: 200
     max_split_size : False

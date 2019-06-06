@@ -1,5 +1,5 @@
 data:
-    dir: ~/library/data/lab/
+    dir: ../data/lab/ 
     source: input.txt
     cols: ['text','label']
     extras: []

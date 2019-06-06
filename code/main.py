@@ -51,7 +51,7 @@ class Main():
                         estimate_clusters = params['parameters']['estimate_clusters'])
 
     def prepare_data(self, data, cols, extras):
-        df_split = data.copy() #[cols]
+        df_split = data.copy()
         ## Standardize
         if 'tag' not in df_split.columns:
             df_split['tag'] = ''
@@ -73,7 +73,7 @@ class Main():
         df_split.reset_index(inplace=True) # create row ID
         df_split['iter_id'] = self.log.iter
 
-        print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
+        print(f'[INFO] Post Duplicate/Missing Length -> {len(df_split)}')
 
         assert len(df_split[df_split.label == '']) != 0, \
             '[ERROR] Congratulations, all your data is already labeled.'
@@ -86,28 +86,28 @@ class Main():
     def run(self, path, cols, extras, target='label', 
                         language='de', task='cat', labelers=1,
                         quality=1, estimate_clusters=True):
-        """First contact data loading
+        """Main function for UpLabel
 
         INPUT
-        - path (string) : path to data
+        - path (string) : path to project directory
         - cols (list)
         - extras (list)
         - target (string)
-        - language (string)
+        - language (string) :
+            de = german
+            en = english
         - task (string) :
             cat = classification
             ent = entitiy (NER)
-        - labelers (int) 
+        - labelers (int) : number of labelers
         - quality (int) : 
             1 = strict
             2 = medium / smart
             3 = ignore
-
-        OUTPUT
-        - df_split (dataframe(s)) : data split for labeling
         """
 
         if self.log.iter > 0:
+            # Load iteration #
             load_iter = self.log.iter - 1
             print(f'[INFO] Loading splits from iteration {load_iter}.')
             data = jo.load_iteration(self.data_dir, load_iter)
@@ -121,6 +121,9 @@ class Main():
         ### COMPLEXITY ###
         complexity, m_complexity, df_split = cp.run(df_split, estimate_clusters, language)
 
+        ### SPLIT ###
+        df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter, max_split=self.max_split)
+    
         ## Log results
         self.log.write_log('complexity', complexity)
         self.log.write_log('performance', complexity)
@@ -129,13 +132,7 @@ class Main():
         self.log.write_log('labels', len(df_split[df_split.label != ''].label.drop_duplicates()))
         # END
 
-        ## Merge with df_all
-        # df_all = pd.concat([df_all[extras], df_split], sort=False, axis=1)
+        ## Store Residual
         df_all = df_split.copy()
         df_all.drop(['pred_id','pred'], axis=1, inplace=True)
         df_all.to_csv('.'.join(path.split('.')[:-1]) + f'-it_{self.log.iter}-residual.txt', sep='\t',encoding='utf-8')
-
-        ### SPLIT ###
-        df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter, max_split=self.max_split)
-    
-        return df_splits

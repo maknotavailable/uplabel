@@ -11,4 +11,11 @@ The following columns are required:
 
 # Quality
 Labelers can add a tag to each label, representing label certainty. 
+
+## Tags a labeler can set
 - ? : not sure about label
+
+## How to deal with tags
+1 = strict
+2 = medium / smart
+3 = ignore
