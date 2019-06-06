@@ -1,6 +1,6 @@
 <img src="assets/UpLabel.png" width="400" align="left"><br><br><br><br>
 # UpLabel
-A simple, automated, labeling tool for text classification and entity recognition.
+UpLabel is a lightweight, Python-based and modular tool which serves to support your machine learning tasks by making the data labeling process more efficient, automated and structured. In the current version, the tool is mainly focused on text classification tasks.
 
 #### Software Component Flow
 ---
