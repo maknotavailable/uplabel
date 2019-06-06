@@ -39,6 +39,8 @@ class Main():
         else:
             self.log.set_iter(0)
         
+        self.max_split = params['parameters']['max_split_size']
+
         # Run iteration
         self.run(params['data']['dir']+params['data']['source'],
                         params['data']['cols'],
@@ -131,6 +133,6 @@ class Main():
         df_all.to_csv('.'.join(path.split('.')[:-1]) + f'-it_{self.log.iter}-residual.txt', sep='\t',encoding='utf-8')
 
         ### SPLIT ###
-        df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter)
+        df_splits = sp.apply_split(df_split, path, complexity, labelers, iter_id = self.log.iter, max_split=self.max_split)
     
         return df_splits

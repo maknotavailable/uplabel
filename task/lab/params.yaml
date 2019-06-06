@@ -1,6 +1,5 @@
 data:
-    dir: C:/Users/makayser/Desktop/git/uplabel/data/lab/
-    labdir: ~/library/data/lab/
+    dir: ~/library/data/lab/
     source: input.txt
     cols: ['text','label']
     extras: []
@@ -13,3 +12,7 @@ parameters:
     labelers: 2
     quality: 1
     estimate_clusters: True
+    quality_size: 0.1
+    overlap_size: 0.1
+    min_split_size: 0
+    max_split_size : 100

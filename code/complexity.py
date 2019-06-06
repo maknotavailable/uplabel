@@ -2,25 +2,21 @@
 Estimate task complexity
 
 """
-from imblearn.over_sampling import SMOTE
+import pandas as pd
+import numpy as np
+import pickle
 from sklearn.model_selection import StratifiedKFold
 from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import Normalizer
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer
-from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.naive_bayes import BernoulliNB, MultinomialNB, ComplementNB
+from sklearn.feature_extraction.text import TfidfTransformer, HashingVectorizer, TfidfVectorizer
+from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import classification_report, silhouette_score, f1_score
-from sklearn.decomposition import TruncatedSVD
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from utils import CleanText
-import pandas as pd
-import numpy as np
-
-import pickle
+from imblearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
 
 import utils as ut
+from utils import CleanText
 
 def get_map_labels(labels):
     return labels.reset_index().drop('label', axis=1).reset_index().set_index('index').T.to_dict('int')['level_0']
@@ -42,7 +38,7 @@ def check_labels(data, min=10, mid=50):
 def prepare_split(data, split=True, vectorize=False, oversample=False):
     if split:
         # Split
-        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=123)
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=222)
         for train_index, test_index in skf.split(data.text, data.cat_id):
             # Content
             X_train, X_test = data.text[train_index], data.text[test_index]
@@ -68,12 +64,14 @@ def get_cat_complexity(data, cat_map, language, vectorize=False, oversample=Fals
     # Create train / test split
     X_train, y_train, X_test, y_test = prepare_split(_data, vectorize=vectorize, oversample=oversample)
 
-    ## Build Pipeline
+    ## Build Pipeline   
     pipe = Pipeline([
         ('clean', CleanText(language=language)),
         ('vect', HashingVectorizer(alternate_sign = False, n_features = 2**16)),
         ('tfidf', TfidfTransformer()),
-        ('clf', SGDClassifier(loss='modified_huber', max_iter=1000, tol=1e-3)),
+        ('smt', SMOTE(ratio='all',random_state=42)),
+        # ('clt', ComplementNB())
+        ('clf', SGDClassifier(loss='modified_huber', max_iter=1000, tol=1e-3, random_state=123)),
     ])
     ## Train
     pipe.fit(X_train, y_train)
@@ -94,18 +92,15 @@ def get_cat_complexity(data, cat_map, language, vectorize=False, oversample=Fals
     complexity = f1_score(y_test, pred, average='weighted')
     ## TODO: add data used for training -> (len(_data) / len(data)))*100
     ## TODO: normalize complexity (softmax?)
-    print(f'\t[INFO] Complexity Score -> {complexity}')
     return complexity, pipe
 
 def get_cluster_complexity(data, n_cluster, language):
-    # Cluster Count
-    # n_cluster = len(data[(data.label != ''].label.drop_duplicates()) 
     # Fit cluster model
     pipe = Pipeline([
         ('clean', CleanText(language='de')),
         ('vect', TfidfVectorizer(max_df=0.5, min_df=2)),
         ('tfidf', TfidfTransformer()),
-        ('clf', KMeans(n_clusters=n_cluster, init='k-means++', max_iter=100, n_init=1, random_state=0)),
+        ('clf', KMeans(n_clusters=n_cluster, init='k-means++', max_iter=100, n_init=1, random_state=222)),
     ])
     pipe.fit(data.text)
     vectorizer = TfidfVectorizer(max_df=0.5, min_df=2)
@@ -115,12 +110,12 @@ def get_cluster_complexity(data, n_cluster, language):
     pred = pipe.predict(data.text)
     silscore = silhouette_score(X, pred)
     complexity = (silscore + 1)/2
-    print(f'\t[INFO] Complexity Score -> {complexity}')
     
     # Mapping Table
     _temp = data.copy()
+    print(data.label.value_counts())
     _temp['cluster'] = pred #TODO: getting mapping table is broken
-    _temp = _temp[["cluster", "label","text"]].groupby(["cluster", "label"]).count().sort_values("text").groupby(level=0).tail(1)
+    _temp = _temp[["index","cluster", "label"]].groupby(["cluster", "label"]).count().sort_values("index").groupby(level=0).tail(1)
     _temp = _temp.reset_index()
     cat_map = _temp.groupby('cluster')['label'].apply(lambda x: x).to_dict()
 
@@ -170,6 +165,7 @@ def run(data, estimate_clusters, language):
     else:
         print('\n[INFO] Estimating complexity using SUPERVISED approach.')
         complexity, model = get_cat_complexity(_data, map_labels, language)
+    print(f'\t[INFO] Complexity Score -> {complexity:.3}')
     
     # Step 3
     print('\t[INFO] Applying model to data')

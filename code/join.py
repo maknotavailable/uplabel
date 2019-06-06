@@ -2,48 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 
-def get_quality_score(df_truth, df_split):
-    """Overlap with ground truth"""
-    _available = df_truth[df_truth.label != ''].merge(df_split, on = ['index']).copy()
-    _correct = _available[(_available['label_x'] == _available['label_y'])].copy()
-    score = len(_correct) / len(_available)
-    if len(_available) == 0:
-        print(f'\t[INFO] No quality overlap detected.')
-    return score
-
-def get_consistance_score(df_split):
-    """Overlap with other labelers"""
-    # def get_consistance_score(df_split):
-    # print("[INFO]: GET CONSISTANCE SCORES ###################")
-
-    # # Group by Labeler
-    # grouped_labelers = df_split.groupby('labeler')
-    # grouped_labels = df_split.groupby('index')
-    
-    # scores = []
-    # major = []
-
-    # # Majority Vote: removed if no distinct majority
-    # print("[INFO]: MAJORITY LABELS ###################")
-    # for name, group in grouped_labels:
-    #     gsum = group.label.mode()
-    #     if len(gsum) == 1:
-    #         major.append({'index': name, 'label': gsum[0]})
-    # major = pd.DataFrame(major)
-    # print(major)
-    # print("")
-    
-    # print("[INFO]: OVERLAPS ###################")
-    # for name, group in grouped_labelers:
-    #     #### OVERLAP WITH MAJORITY
-    #     overlap_major = group.merge(major, on=['index', 'label'])
-    #     gt_overlap = len(overlap_major) / len(major)
-    #     print("GroundT Overlap", name, ":", gt_overlap)
-    #     scores.append({'labeler': name, 'gt_overlap': gt_overlap})
-    # return scores   
-    #TODO:
-    pass
-
 def assign_lbl_score(x):
     if x == '':
         return 0
@@ -51,7 +9,7 @@ def assign_lbl_score(x):
         return 1
 
 def prepare_data(data):
-    return data.reset_index(drop=False).replace(np.nan, '', regex=True)
+    return data.replace(np.nan, '', regex=True)
 
 def load_splits(data_dir, iter_id):
     # Load Files
@@ -64,19 +22,68 @@ def load_splits(data_dir, iter_id):
                 if 'residual' == _split and iter_id == _iteration:
                     residual = pd.read_csv(_fn.path, sep='\t', encoding='utf-8', index_col=0)
                     residual = prepare_data(residual)
-                    residual.drop('level_0', axis=1, inplace=True)
+                    # residual.drop('level_0', axis=1, inplace=True)
                     path = '-'.join(_fn.name.split('-')[:2]) + '_train.txt'
                     residual['lbl_score'] = residual['label'].apply(assign_lbl_score)
                 elif iter_id == _iteration:
                     _temp_split = pd.read_excel(_fn.path, encoding='utf-8', index_col=0)
                     _temp_split = prepare_data(_temp_split)
-                    quality_score = get_quality_score(residual, _temp_split)
-                    _temp_split['lbl_score'] = quality_score
+                    _temp_split = _temp_split.reset_index(drop=False)
+                    _temp_split['labeler'] = _split
                     df_splits.append(_temp_split)
-                    print(f'\t[INFO] Quality Score of Labeler {_split} -> {quality_score}')
     except Exception as e:
         print(f'[ERROR] Files seem to be missing, or you may have skipped an iteration -> {e}') 
     return residual, df_splits, path
+
+def get_quality_score(df_truth, df_split):
+    """Overlap with ground truth"""
+
+    _available = df_truth[df_truth.label != ''].merge(df_split, on = ['index']).copy()
+    _correct = len(_available[(_available['label_x'] == _available['label_y'])])
+    score = _correct / len(_available)
+    if len(_available) == 0:
+        print(f'\t[INFO] No quality overlap detected.')
+    return score
+
+def get_consistance_score(df_split):
+    """Overlap with other labelers"""
+
+    # Group by Labeler
+    grouped_labelers = df_split.groupby('labeler')
+    grouped_labels = df_split.groupby('index')
+    
+    scores = []
+    major = []
+
+    # Majority Vote: removed if no distinct majority
+    for name, group in grouped_labels:
+        gsum = group.label.mode()
+        if len(gsum) == 1:
+            major.append({'index': name, 'label': gsum[0]})
+    major = pd.DataFrame(major)
+
+    # OVERLAP WITH MAJORITY
+    scores = dict()
+    for name, group in grouped_labelers:
+        
+        overlap_major = group.merge(major, on=['index', 'label'])
+        gt_overlap = len(overlap_major) / len(major)
+        scores[name] =  gt_overlap
+    return scores
+
+def get_lbl_score(_residual, _df_splits_list):
+    print("\t[INFO] Calculating labeler score")
+    _df_splits = pd.concat(_df_splits_list, ignore_index = True, sort = False)
+    consistance_score = get_consistance_score(_df_splits)
+    _df_splits_list_out = []
+    for _split in _df_splits_list:
+        labeler = _split['labeler'].drop_duplicates().values[0]
+        quality_score = get_quality_score(_residual, _split)
+        labeler_score = (quality_score*2 + consistance_score[labeler])/3
+        _split['lbl_score'] = labeler_score
+        _df_splits_list_out.append(_split)
+        print(f'\t[INFO] Labeler {labeler} Score -> {labeler_score:.2}')
+    return _df_splits_list_out
 
 def join_splits(residual, df_splits):
     _data = residual.append(df_splits, sort=False, ignore_index=True) 
@@ -90,6 +97,8 @@ def join_splits(residual, df_splits):
 def load_iteration(data_dir, iter_id):
     # Load
     residual, df_splits, path = load_splits(data_dir, iter_id)
+    # Get Labeler Scores
+    df_splits = get_lbl_score(residual, df_splits)
     # Merge
     data = join_splits(residual, df_splits)
     # Store

@@ -2,4 +2,4 @@ import sys
 sys.path.append('../code')
 import main as m
 
-ul = m.Main('tal', debug_iter_id=0)
+ul = m.Main('tal', debug_iter_id=1)
