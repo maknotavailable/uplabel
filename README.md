@@ -1,4 +1,4 @@
-<img src="../assets/UpLabel.png" width="400" align="left"><br><br><br><br>
+<img src="assets/UpLabel.png" width="400" align="left"><br><br><br><br>
 # UpLabel
 A simple, automated, labeling tool for text classification and entity recognition.
 
