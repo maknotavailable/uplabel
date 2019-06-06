@@ -21,7 +21,7 @@ Martin Kayser (@maknotavailable)
 # Glossary
 | Word | Description |
 |---|---|
-| label | target category used by model and to be labelled |
+| label | target category used by model and to be labeled |
 | red(\_id) | predicted label, respective numeric identifier |
 | split | a subset of the data, to be distributed for manual labelling |
 

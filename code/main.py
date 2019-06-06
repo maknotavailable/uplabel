@@ -58,7 +58,6 @@ class Main():
         if 'comment' not in df_split.columns:
             df_split['comment'] = ''
         
-        # df_split.columns = ['text','label','tag','comment']
         print(f'[INFO] Input Length -> {len(df_split)}')
         print(f'[INFO] Label Summary: \n{df_split[df_split.label != ""].label.value_counts()}')
         
@@ -75,10 +74,11 @@ class Main():
         df_split['iter_id'] = self.log.iter
 
         print(f'[INFO] Post Duplicate Length -> {len(df_split)}')
+
         assert len(df_split[df_split.label == '']) != 0, \
-            '[ERROR] Congratulations, all your data is already labelled.'
+            '[ERROR] Congratulations, all your data is already labeled.'
         assert len(df_split[df_split.label != '']) != 0, \
-            '[ERROR] None of the data is labelled. Please provide \
+            '[ERROR] None of the data is labeled. Please provide \
             examples for each category first.'
 
         return data, df_split
@@ -124,8 +124,8 @@ class Main():
         ## Log results
         self.log.write_log('complexity', complexity)
         self.log.write_log('performance', complexity)
-        self.log.write_log('data_length', len(__))
-        self.log.write_log('labelled_length', len(df_split[df_split.label != '']))
+        self.log.write_log('data_length', len(df_split))
+        self.log.write_log('labeled_length', len(df_split[df_split.label != '']))
         self.log.write_log('labels', len(df_split[df_split.label != ''].label.drop_duplicates()))
         # END
 
