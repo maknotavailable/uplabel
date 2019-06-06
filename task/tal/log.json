@@ -1,0 +1,1 @@
+{"iterations": [{"iteration": 0, "complexity": 0.4557260920897285, "performance": 0.4557260920897285, "data_length": 1745, "labelled_length": 62, "labels": 4}, {"iteration": 1, "complexity": 0.6269649390674699, "performance": 0.6269649390674699, "data_length": 1745, "labelled_length": 1011, "labels": 4}]}
