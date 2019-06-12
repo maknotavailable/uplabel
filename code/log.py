@@ -33,7 +33,7 @@ class Log():
         print('####################################\n')
         self.iter = iter
         
-        if len(self.logs['iterations']) != self.iter: # +1
+        if len(self.logs['iterations']) != self.iter + 1:
             self.logs['iterations'].append(dict(iteration = iter))
         self.write_log('iteration',iter)
 
