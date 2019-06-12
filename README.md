@@ -15,7 +15,7 @@ UpLabel is a lightweight, Python-based and modular tool which serves to support 
 2. Start 'Test - Pipeline' notebook
 
 # Authors
-Timm Walz (@torsion214)    
+Timm Walz (@nonstoptimm)    
 Martin Kayser (@maknotavailable)
 
 # Glossary
